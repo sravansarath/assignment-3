@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   	int* pCount;
   	int* disp;
   	MPI_Status status;
-  	int x,y,z,counter;
+  	int i,j,n,counter;
   	int local_min,local_max;
   	int tmp;
 
@@ -24,14 +24,14 @@ int main(int argc, char* argv[])
 
  	if (rank == 0)
 	{
-    		for (x = 0; x < S; x++)
+    		for (i = 0; i < a; i++)
 		{
-      			rawNum[x] = rand() % a;
+      			rawNum[i] = rand() % a;
     		}
 
-    		for (x = 1; x < size; x++)
+    		for (i = 1; i < size; i++)
 		{
-      			MPI_Send(rawNum,S,MPI_INT,x,1,MPI_COMM_WORLD);
+      			MPI_Send(rawNum,S,MPI_INT,i,1,MPI_COMM_WORLD);
     		}
   	}
   
@@ -43,10 +43,10 @@ int main(int argc, char* argv[])
 
 
   	counter = 0;
-  	local_min = rank * (S/size);
-  	local_max = (rank + 1) * (S/size);
+  	local_min = rank * (a/size);
+  	local_max = (rank + 1) * (a/size);
 
-  	for (i = 0; i < S; i++)
+  	for (i = 0; i < a; i++)
 	{
     		if ((rawNum[i] >= local_min) && (rawNum[i] < local_max))
 		{
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
   	smallBucket = malloc(counter * sizeof(int));
 
   	counter = 0;
-  	for (i = 0; i < S; i++)
+  	for (i = 0; i < a; i++)
 	{
     		if ((rawNum[i] >= local_min) && (rawNum[i] < local_max))
 		{
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     		}
   	}
 
-	//sorting each small bucket using bubble sort
+	
   	for (i = 0; i < counter; i++)
 	{
     		for (j = i+1; j < counter; j++)
@@ -80,14 +80,13 @@ int main(int argc, char* argv[])
     		}
   	}
 
-  	// set up root process
+  	
   	if (rank == 0)
 	{
       		pCount = malloc(size * sizeof(int));
     		disp = malloc(size * sizeof(int));
   	}
 
-  	// populate pCount
   	MPI_Gather(&counter,1,MPI_INT,pCount,1,MPI_INT,0,MPI_COMM_WORLD);
 
 
@@ -105,7 +104,7 @@ int main(int argc, char* argv[])
   	if (rank == 0)
 	{
     		printf("Before sort: \n");
-    		for (i = 0; i < S; i++) 
+    		for (i = 0; i < a; i++) 
 			printf("%d ",rawNum[i]);
     		printf("\nAfter sort: \n");
     		for (i = 0; i < S; i++) 
